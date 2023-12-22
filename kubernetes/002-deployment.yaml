@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: external-lens-service-python
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: external-lens-service-python
+  template:
+    metadata:
+      labels:
+        app: external-lens-service-python
+    spec:
+      containers:
+      - name: external-lens-service-python
+        image: gravitate-registry.cr.de-fra.ionos.com/external-lens-service-python:devserver
+        imagePullPolicy: Always
+        env:
+        - name: ENVIRONMENT
+          value: "prod"
+        ports:
+        - containerPort: 3000
+          protocol: TCP
+      restartPolicy: Always
+status: {}
