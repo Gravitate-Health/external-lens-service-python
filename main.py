@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from xml.dom import minidom
 import json
-
+from bs4 import BeautifulSoup
 
 app = FastAPI()
 
@@ -33,7 +33,6 @@ async def pregnancyLense(request: Request):
     epiEntryList = epiData["entry"]
     compositions = 0
     categories = []
-    print(epiEntryList)
     for entry in epiEntryList:
         if entry["resource"]["resourceType"] == "Composition":
             compositions += 1
@@ -42,7 +41,6 @@ async def pregnancyLense(request: Request):
                     if extension["extension"][1]["valueCodeableReference"]["concept"] != None:
                         for coding in extension["extension"][1]["valueCodeableReference"]["concept"]["coding"]:
                             if coding["code"] in listOfCategoriesToSearch:
-                                print("Extension: " + extension["extension"][0]["valueString"] + ":" + coding["code"])
                                 categories.append(extension["extension"][0]["valueString"])
     if compositions == 0:
         raise Exception('Bad ePI: no category "Composition" found')
@@ -50,12 +48,27 @@ async def pregnancyLense(request: Request):
     if len(categories) == 0:
         return htmlData
     
-    return await annotateHTMLsection(htmlData, categories, "highlight")
+    return annotateHTMLsection(htmlData, categories, "highlight")
 
 @app.get("/pregnancy")
 async def welcomeMessage():
     return {"advice": "Welcome to the pregnancy lense!"}
 
-async def annotateHTMLsection(htmlData, categories, enhanceTag):
-    # TO-DO: make this function.
-    pass
+def annotateHTMLsection(htmlData, categories, enhanceTag):
+    # Parse the HTML data
+    response = htmlData
+    htmlDOM = BeautifulSoup(htmlData, "html.parser")
+    print(htmlDOM.prettify())
+    htmlDOM = annotationProcecess(categories, enhanceTag, htmlDOM, response)
+    print(htmlDOM.prettify())
+    return {"DOM": str(htmlDOM)}
+
+def annotationProcecess(categories: list[str], enhanceTag: str, htmlDOM: BeautifulSoup, response: str):
+    for category in categories:
+        if category in response:
+            elements = htmlDOM.find_all(class_=category)
+            for element in elements:
+                element["class"].append(enhanceTag)
+    
+    return htmlDOM
+

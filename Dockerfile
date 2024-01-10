@@ -8,6 +8,8 @@ RUN pip install fastapi
 
 RUN pip install "uvicorn[standard]"
 
+RUN pip install beautifulsoup4
+
 ENV PORT=3000
 
 EXPOSE ${PORT}
