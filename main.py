@@ -61,7 +61,7 @@ def annotateHTMLsection(htmlData, categories, enhanceTag):
     print(htmlDOM.prettify())
     htmlDOM = annotationProcecess(categories, enhanceTag, htmlDOM, response)
     print(htmlDOM.prettify())
-    return {"DOM": str(htmlDOM)}
+    return {"htmlString": str(htmlDOM)}
 
 def annotationProcecess(categories: list[str], enhanceTag: str, htmlDOM: BeautifulSoup, response: str):
     for category in categories:
