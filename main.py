@@ -1,9 +1,14 @@
 from fastapi import FastAPI, Request
-from xml.dom import minidom
 import json
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, UnicodeDammit
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 
 app = FastAPI()
+
+class DOMResponse(BaseModel):
+    htmlString: str
 
 @app.post("/pregnancy")
 async def pregnancyLense(request: Request):
@@ -38,7 +43,7 @@ async def pregnancyLense(request: Request):
             compositions += 1
             for extension in entry["resource"]["extension"]:
                 if extension["extension"][1]["url"] == "concept":
-                    if extension["extension"][1]["valueCodeableReference"]["concept"] != None:
+                    if extension["extension"][1]["valueCodeableReference"].get("concept") != None:
                         for coding in extension["extension"][1]["valueCodeableReference"]["concept"]["coding"]:
                             if coding["code"] in listOfCategoriesToSearch:
                                 categories.append(extension["extension"][0]["valueString"])
@@ -60,8 +65,12 @@ def annotateHTMLsection(htmlData, categories, enhanceTag):
     htmlDOM = BeautifulSoup(htmlData, "html.parser")
     print(htmlDOM.prettify())
     htmlDOM = annotationProcecess(categories, enhanceTag, htmlDOM, response)
-    print(htmlDOM.prettify())
-    return {"htmlString": str(htmlDOM)}
+    strDOM = str(htmlDOM)
+    item = DOMResponse(htmlString=strDOM)
+    jsonCompatibleData = jsonable_encoder(item)
+    
+    return JSONResponse(content=jsonCompatibleData)
+    
 
 def annotationProcecess(categories: list[str], enhanceTag: str, htmlDOM: BeautifulSoup, response: str):
     for category in categories:
@@ -71,4 +80,3 @@ def annotationProcecess(categories: list[str], enhanceTag: str, htmlDOM: Beautif
                 element["class"].append(enhanceTag)
     
     return htmlDOM
-

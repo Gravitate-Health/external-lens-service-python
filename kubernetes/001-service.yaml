@@ -4,7 +4,6 @@ metadata:
   name: external-lens-service-python
   labels:
     name: external-lens-service-python
-    eu.gravitate-health.fosps.focusing: "true"
 spec:
   selector:
     app: external-lens-service-python
